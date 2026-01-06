@@ -1,14 +1,12 @@
 FROM ruby:3.2-slim
 
-ENV RAILS_ENV=production \
-    REDMINE_HOME=/usr/src/redmine
-
-# Dependências do sistema (Debian moderno)
+# Dependências do sistema
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     libmariadb-dev \
     libsqlite3-dev \
+    libyaml-dev \
     git \
     imagemagick \
     ca-certificates \
@@ -17,26 +15,16 @@ RUN apt-get update && apt-get install -y \
     bash \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR $REDMINE_HOME
+WORKDIR /usr/src/redmine
 
-# Copia TODO o fork
+# Código
 COPY . .
 
 # Bundler
 RUN gem install bundler
-
-# Gems
-RUN bundle config set without 'development test' \
-    && bundle install --jobs 4 --retry 3
-
-# Assets
-RUN bundle exec rake assets:precompile
-
-# Entrypoint
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN bundle install --jobs 4 --retry 3
 
 EXPOSE 3000
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["bundle", "exec", "puma", "-C", "docker/puma.rb"]
+ENTRYPOINT ["bash", "docker/entrypoint.sh"]
+CMD ["rails", "server", "-b", "0.0.0.0"]

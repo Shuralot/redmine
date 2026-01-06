@@ -1,32 +1,25 @@
 services:
   redmine:
-    build:
-      context: .
-    container_name: redmine_61
-    restart: always
+    build: .
+    container_name: redmine
     ports:
       - "3000:3000"
     environment:
       RAILS_ENV: production
-      DATABASE_URL: postgres://redmine:redmine@db:5432/redmine
+      DATABASE_URL: mysql2://redmine:redmine@db/redmine
       SECRET_KEY_BASE: dc574167cb881dfd1b871dbedba58e11a2130341044b66848a0c71661c3d0e2576e60b05b13914d1dddb2a4d8319cb1b7fc41c824ea27f0c0df3b99959366bfe
-    volumes:
-      - redmine_files:/usr/src/redmine/files
-      - ./plugins:/usr/src/redmine/plugins
-      - ./themes:/usr/src/redmine/themes
     depends_on:
       - db
 
   db:
-    image: postgres:15
-    restart: always
+    image: mariadb:11
     environment:
-      POSTGRES_DB: redmine
-      POSTGRES_USER: redmine
-      POSTGRES_PASSWORD: redmine
+      MYSQL_DATABASE: redmine
+      MYSQL_USER: redmine
+      MYSQL_PASSWORD: redmine
+      MYSQL_ROOT_PASSWORD: root
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - db-data:/var/lib/mysql
 
 volumes:
-  pgdata:
-  redmine_files:
+  db-data:
